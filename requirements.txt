@@ -1,0 +1,4 @@
+requests>=2.13.0
+python-dotenv>=1.0.0
+Flask>=2.3.2
+uuid

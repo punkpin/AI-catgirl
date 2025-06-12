@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI角色扮演聊天</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI角色扮演聊天</h1>
+            <div class="role-selector">
+                <label for="role-select">选择角色:</label>
+                <select id="role-select">
+                    {% for role in roles %}
+                        <option value="{{ role }}" {% if role == current_role %}selected{% endif %}>
+                            {{ role }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button id="switch-role-btn"><i class="fas fa-sync-alt"></i> 切换</button>
+                <button id="clear-chat-btn"><i class="fas fa-trash-alt"></i> 清空</button>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-box" id="chat-box">
+                {% for message in chat_history %}
+                    <div class="message {% if message.is_user %}user-message{% else %}ai-message{% endif %} {% if message.is_system %}system-message{% endif %}">
+                        <div class="sender">{{ message.sender }}:</div>
+                        <div class="content">{{ message.message }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="input-area">
+                <textarea id="user-input" placeholder="输入消息..."></textarea>
+                <button id="send-btn"><i class="fas fa-paper-plane"></i> 发送</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>当前角色: <strong>{{ role_name }}</strong> | 会话ID: {{ session.session_id }}</p>
+        </div>
+    </div>
+
+    <script>
+        // 滚动到聊天框底部
+        function scrollToBottom() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // 发送消息
+        document.getElementById('send-btn').addEventListener('click', sendMessage);
+        document.getElementById('user-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const userInput = document.getElementById('user-input');
+            const message = userInput.value.trim();
+
+            if (!message) return;
+
+            // 添加用户消息到聊天框
+            const chatBox = document.getElementById('chat-box');
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message user-message';
+            userMessageDiv.innerHTML = `
+                <div class="sender">你:</div>
+                <div class="content">${message}</div>
+            `;
+            chatBox.appendChild(userMessageDiv);
+
+            // 清空输入框
+            userInput.value = '';
+
+            // 显示"思考中"消息
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.className = 'message ai-message thinking';
+            thinkingDiv.innerHTML = `
+                <div class="sender">{{ role_name }}:</div>
+                <div class="content"><i class="fas fa-spinner fa-spin"></i> 思考中...</div>
+            `;
+            chatBox.appendChild(thinkingDiv);
+
+            scrollToBottom();
+
+            // 发送到服务器
+            fetch('/send_message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 移除"思考中"消息
+                chatBox.removeChild(thinkingDiv);
+
+                // 添加AI回复
+                const aiMessageDiv = document.createElement('div');
+                aiMessageDiv.className = 'message ai-message';
+                aiMessageDiv.innerHTML = `
+                    <div class="sender">${data.sender}:</div>
+                    <div class="content">${data.response}</div>
+                `;
+                chatBox.appendChild(aiMessageDiv);
+
+                scrollToBottom();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                chatBox.removeChild(thinkingDiv);
+
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'message system-message';
+                errorDiv.innerHTML = `
+                    <div class="sender">系统:</div>
+                    <div class="content">请求失败，请重试</div>
+                `;
+                chatBox.appendChild(errorDiv);
+
+                scrollToBottom();
+            });
+        }
+
+        // 切换角色
+        document.getElementById('switch-role-btn').addEventListener('click', switchRole);
+
+        function switchRole() {
+            const roleSelect = document.getElementById('role-select');
+            const roleName = roleSelect.value;
+
+            fetch('/switch_role', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ role_name: roleName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 刷新页面以加载新角色
+                    location.reload();
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // 清空聊天
+        document.getElementById('clear-chat-btn').addEventListener('click', clearChat);
+
+        function clearChat() {
+            if (confirm('确定要清空聊天记录吗？')) {
+                fetch('/clear_chat', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // 页面加载时滚动到底部
+        window.addEventListener('load', scrollToBottom);
+    </script>
+</body>
+</html>
