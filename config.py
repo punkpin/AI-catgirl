@@ -3,7 +3,7 @@ import os
 # API设置
 API_SETTINGS = {
     "url": "https://api.deepseek.com/v1/chat/completions",
-    "model": "deepseek-reasoner",
+    "model": "deepseek-chat",
     "max_tokens": 1024,
     "frequency_penalty": 0.2
 }
