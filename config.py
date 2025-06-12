@@ -12,7 +12,7 @@ API_SETTINGS = {
 ROLES_DIR = os.path.join(os.path.dirname(__file__), "roles")
 
 # 默认角色
-DEFAULT_ROLE = "catgirl"
+DEFAULT_ROLE = "猫娘"
 
 # 确保角色目录存在
 if not os.path.exists(ROLES_DIR):
