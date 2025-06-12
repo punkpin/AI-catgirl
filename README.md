@@ -89,27 +89,11 @@ python main.py
 /role detective
 ```
 
-## 项目结构
-
-```
-deepseek-roleplay/
-├── roles/              # 角色配置文件
-│   ├── catgirl.json    # 猫娘角色
-│   └── succubus.json   # 魅魔角色
-|
-├── .env                # API密钥配置
-├── config.py           # 全局设置
-├── role_manager.py     # 角色管理
-├── deepseek_api.py     # API交互模块
-├── main.py             # 主程序
-└── README.md           # 说明文档
-```
-
 ## 注意事项
 
 1. **API 费用**：使用 DeepSeek API 可能会产生费用，请留意用量
 2. **网络连接**：需要稳定的网络连接访问 DeepSeek 服务
-3. **角色限制**：角色行为受限于 DeepSeek 的内容政策
+3. **角色限制**：角色行为可能受限于 DeepSeek 的内容政策
 4. **响应时间**：首次响应可能需要 2-5 秒
 
 ## 贡献指南
