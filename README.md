@@ -16,8 +16,8 @@
 ### 安装依赖
 
 ```bash
-git clone https://github.com/yourusername/deepseek-roleplay.git
-cd deepseek-roleplay
+git clone https://github.com/punkpin/AI-catgirl.git
+cd AI-catgirl
 pip install -r requirements.txt
 ```
 
